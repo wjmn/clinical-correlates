@@ -59,6 +59,22 @@ allPuzzles =
         , groupHard = { groupDescriptor = "Four pillars of heart failure", tiles = [ "ACE inhibitors", "beta blockers", "SGLT2 inhibitors", "spironolactone" ] }
         , groupChallenge = { groupDescriptor = "Associated with acute abdomen", tiles = [ "hyperlactaemia", "rebound tenderness", "fever", "perforation" ] }
         }
+    ,
+        { id = "2026-03-15C"
+        , groupEasy = { groupDescriptor = "To enlarge", tiles = [ "distend", "dilate", "swell", "expand" ] }
+        , groupMedium = { groupDescriptor = "Drugs for insomnia", tiles = [ "melatonin", "temazepam", "zolpidem", "doxylamine" ] }
+        , groupHard = { groupDescriptor = "___ syndrome in pharmacology", tiles = [ "red man", "stevens-johnson", "serotonin", "neuroleptic malignant" ] }
+        , groupChallenge = { groupDescriptor = "Ending in sensory organs", tiles = [ "tear", "reye", "stenose", "leopardskin" ] }
+       }
+    ,
+        { id = "2026-03-15D"
+        , groupEasy = { groupDescriptor = "PPE", tiles = [ "mask", "gown", "glove", "shield" ] }
+        , groupMedium = { groupDescriptor = "Genetic tests", tiles = [ "fish", "karyotype", "microarray", "panel" ] }
+        , groupHard = { groupDescriptor = "___ tremor", tiles = [ "resting", "intention", "essential", "postural" ] }
+        , groupChallenge = { groupDescriptor = "Ending in synonyms for unwell", tiles = [ "krill", "fossick", "flailing", "doff" ] }
+        }
+
 
 
     ]
+    |> List.reverse

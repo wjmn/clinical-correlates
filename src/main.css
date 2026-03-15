@@ -66,7 +66,6 @@ button.disabled {
 .outer-container {
   width: 100vw;
   height: 100vh;
-  overflow: hidden;
 }
 
 .inner-container {
@@ -92,7 +91,7 @@ button.disabled {
 }
 
 .grid-tile {
-  font-size: 1rem;
+  font-size: 0.9rem;
   max-width: 20vw;
   padding: 1rem 0.5rem;
   font-weight: bold;
@@ -114,7 +113,36 @@ button.disabled {
 .grid-tile.is-selected {
   background: oklch(36.4% 0.029 323.89);
   color: oklch(98.5% 0 0);
+}
 
+.grid-tile.is-shaking {
+  animation: shake 0.5s;
+  animation-iteration-count: infinite;
+}
+
+.grid-tile.is-jumping {
+  animation: jump 0.25s;
+  animation-timing-function: ease-in-out;
+}
+
+@keyframes shake {
+  0% { transform: translate(1px) }
+  10% { transform: translate(-1px) }
+  20% { transform: translate(-3px) }
+  30% { transform: translate(3px) }
+  40% { transform: translate(1px) }
+  50% { transform: translate(-1px) }
+  60% { transform: translate(-3px) }
+  70% { transform: translate(3px) }
+  80% { transform: translate(-1px) }
+  90% { transform: translate(1px) }
+  100% { transform: translate(1px) }
+}
+
+@keyframes jump {
+  0% { transform: translateY(0px) }
+  50% { transform: translateY(-8px) }
+  100% { transform: translateY(0px) }
 }
 
 /* Button Row */
@@ -181,7 +209,7 @@ button.disabled {
   grid-column: 1/-1;
   height: 2.5rem;
   padding: 1rem 0.5rem;
-  font-size: 1.2rem;
+  font-size: 1rem;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -270,7 +298,7 @@ button.disabled {
 }
 
 .flash.status-lost {
-  background: black;
+  background: grey;
 }
 
 .flash.status-draw {

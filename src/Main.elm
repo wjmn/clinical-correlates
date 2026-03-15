@@ -6,23 +6,25 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra
 import Maybe.Extra
+import Puzzles exposing (..)
 import Random
 import Random.Extra
 import Random.List
 import Set
-import Puzzles exposing (..)
+import Task
+import Process
 
 
 
 ---- MODEL ----
 
 
-
-
 type alias InterfaceTile =
     { content : Content
     , group : TileGroup
     , selected : Bool
+    , shaking : Bool
+    , jumping : Bool
     }
 
 
@@ -45,7 +47,7 @@ type alias Model =
 toTilesWithGroup : TileGroup -> List Content -> List InterfaceTile
 toTilesWithGroup group tiles =
     tiles
-        |> List.map (\c -> { content = c, group = group, selected = False })
+        |> List.map (\c -> { content = c, group = group, selected = False, shaking = False, jumping = False})
 
 
 puzzleToInitialTiles : Puzzle -> List InterfaceTile
@@ -81,7 +83,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         initialModel =
-            initialiseModel (List.Extra.last allPuzzles |> Maybe.withDefault samplePuzzle)
+            initialiseModel (List.head allPuzzles |> Maybe.withDefault samplePuzzle)
     in
     ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
@@ -94,9 +96,12 @@ type Msg
     = NoOp
     | ShuffledTiles (List InterfaceTile)
     | ClickedTile InterfaceTile
+    | UnshakeAllTiles
+    | JumpTilesThenNewModel Model
     | ClickedSubmit
     | ClickedShuffle
     | ClickedPuzzle Puzzle
+    | ClickedRestart
 
 
 withCmd cmd model =
@@ -187,8 +192,13 @@ update msg model =
                                 model.solvedRows ++ [ ( onlyGroup, solvedRow ) ]
                         in
                         if List.length updatedTiles > 0 then
-                            { model | tiles = updatedTiles, solvedRows = solvedRows, message = Just "Nice one!" }
-                                |> withCmd Cmd.none
+                            let
+                                newModel = { model | tiles = updatedTiles, solvedRows = solvedRows, message = Just "Nice one!" }
+                                modelWithJumping = 
+                                    { model | tiles = List.map (\x -> if x.selected then { x | jumping = True} else x) model.tiles }
+                            in
+                                modelWithJumping
+                                |> withCmd (Task.perform (\_ -> JumpTilesThenNewModel newModel) <| Process.sleep 500)
 
                         else
                             { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Nothing }
@@ -196,24 +206,34 @@ update msg model =
 
                     _ ->
                         let
+
+                            unselectedTilesWithShaking =
+                                model.tiles
+                                |> List.map (\t -> if t.selected then { t | selected = False, shaking=True } else t)
                             unselectedTiles =
-                                List.map (\t -> { t | selected = False }) model.tiles
+                                model.tiles
+                                |> List.map (\t -> { t | selected = False })
 
                             remainingTries =
                                 model.remainingTries - 1
 
-                            newMessage = 
-                                case model.message of 
-                                    Just "Not quite!" -> Just "Nope!"
-                                    Just "Nope!" -> Just "Not quite!"
-                                    _ -> Just "Not quite!"
+                            newMessage =
+                                case model.message of
+                                    Just "Not quite!" ->
+                                        Just "Nope!"
+
+                                    Just "Nope!" ->
+                                        Just "Not quite!"
+
+                                    _ ->
+                                        Just "Not quite!"
                         in
                         if remainingTries > 0 then
-                            { model | tiles = unselectedTiles, remainingTries = remainingTries, message = newMessage }
-                                |> withCmd Cmd.none
+                            { model | tiles = unselectedTilesWithShaking, remainingTries = remainingTries, message = newMessage }
+                                    |> withCmd (Task.perform (\_ -> UnshakeAllTiles) <|  (Process.sleep 300) )
 
                         else
-                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "You lost :( No answers for you!"}
+                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "You lost :( No answers for you!" }
                                 |> withCmd Cmd.none
 
             else
@@ -222,13 +242,34 @@ update msg model =
         ClickedShuffle ->
             model
                 |> withCmd (Random.generate ShuffledTiles (Random.List.shuffle model.tiles))
-        
-        ClickedPuzzle puzzle -> 
+
+        UnshakeAllTiles -> 
+            let
+                updatedTiles = List.map (\t -> { t | shaking = False}) model.tiles
+            in
+            { model | tiles = updatedTiles}
+            |> withCmd Cmd.none
+
+        JumpTilesThenNewModel newModel -> 
+            newModel 
+            |> withCmd Cmd.none
+            
+
+        ClickedPuzzle puzzle ->
             let
                 initialModel =
-                    initialiseModel puzzle 
+                    initialiseModel puzzle
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
+
+        ClickedRestart -> 
+            let
+                initialModel =
+                    initialiseModel model.puzzle
+            in
+            ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
+
+
 
         NoOp ->
             ( model, Cmd.none )
@@ -263,7 +304,15 @@ view model =
                 ]
 
         viewTile tile =
-            div [ class "grid-tile", classList [ ( "is-selected", tile.selected ) ], onClick (ClickedTile tile) ]
+            div
+                [ class "grid-tile"
+                , classList
+                    [ ( "is-selected", tile.selected )
+                    , ( "is-shaking", tile.shaking )
+                    , ( "is-jumping", tile.jumping)
+                    ]
+                , onClick (ClickedTile tile)
+                ]
                 [ text tile.content ]
 
         messageDiv =
@@ -290,14 +339,23 @@ view model =
                 |> List.length
 
         submitButtonDisabled =
-            if numSelected < 4 then
-                True
+            case model.solveState of 
+                InProgress -> 
+                    if numSelected < 4 then
+                        True
 
-            else
-                False
+                    else
+                        False
+                _ -> False
 
-        viewPuzzle puzzle = 
-            div [class "other-puzzle-button", onClick (ClickedPuzzle puzzle)] [text puzzle.id]
+        viewPuzzle puzzle =
+            div [ class "other-puzzle-button", onClick (ClickedPuzzle puzzle) ] [ text puzzle.id ]
+
+        (submitText, submitAction) = 
+            case model.solveState of 
+                InProgress -> ("Submit", ClickedSubmit)
+                _ -> ("Restart", ClickedRestart)
+
     in
     div [ class "outer-container" ]
         [ div [ id "game-status", class statusClass ]
@@ -315,8 +373,8 @@ view model =
             ]
         , div [ class "inner-container" ]
             [ div [ class "header" ] [ text "Clinical Correlates" ]
-            , div [class "puzzle-id" ][ text <| model.puzzle.id ]
-            , div [ class "subtitle"] [ text <| "Make four groups of four!"]
+            , div [ class "puzzle-id" ] [ text <| model.puzzle.id ]
+            , div [ class "subtitle" ] [ text <| "Make four groups of four!" ]
             , div [ class "grid-container" ]
                 [ div [ class "grid" ]
                     (List.concat
@@ -325,18 +383,19 @@ view model =
                         ]
                     )
                 ]
-            , div [class "num-remaining"]
-                (List.repeat model.remainingTries (div  [class "remaining-try"] []))
+            , div [ class "num-remaining" ]
+                (List.repeat model.remainingTries (div [ class "remaining-try" ] []))
             , div [ class "button-row" ]
-                [ button [ class "submit-button", onClick ClickedSubmit, disabled submitButtonDisabled, classList [ ( "disabled", submitButtonDisabled ) ] ]
-                    [ text "Submit" ]
+                [ button [ class "submit-button", onClick submitAction, disabled submitButtonDisabled, classList [ ( "disabled", submitButtonDisabled ) ] ]
+                    [ text submitText ]
                 , button [ class "shuffle-button", onClick ClickedShuffle ] [ text "Shuffle" ]
                 ]
             , div [ class "message-row" ]
                 [ messageDiv ]
-            , div [class "other-puzzles"]
-                [div [class "other-puzzles-header"] [text "All dates:"]
-                , div [class "other-puzzles-container"] (List.map viewPuzzle allPuzzles)]
+            , div [ class "other-puzzles" ]
+                [ div [ class "other-puzzles-header" ] [ text "All dates:" ]
+                , div [ class "other-puzzles-container" ] (List.map viewPuzzle allPuzzles)
+                ]
             ]
         ]
 

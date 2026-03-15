@@ -7,8 +7,17 @@ var storageKey = "solved";
 
 let app = Elm.Main.init({
   node: document.getElementById('root'), 
-  flags: localStorage.getItem(storageKey)
+  flags: safeGet(localStorage.getItem(storageKey))
 });
+
+function safeGet(jsonString) {
+  var jsonObject = JSON.parse(jsonString); 
+
+  if (jsonObject == null) {
+    return "[]";
+  }
+  return jsonString;
+}
 
 // when the cache msg is sent, store the session data into local storage
 app.ports.cache.subscribe(function (data) {

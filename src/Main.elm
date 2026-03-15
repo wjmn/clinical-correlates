@@ -116,31 +116,9 @@ update msg model =
                 |> withCmd Cmd.none
 
         ClickedTile clickedTile ->
-            if clickedTile.selected then
-                let
-                    newTiles =
-                        List.map
-                            (\t ->
-                                if t == clickedTile then
-                                    { t | selected = not t.selected }
-
-                                else
-                                    t
-                            )
-                            model.tiles
-                in
-                { model | tiles = newTiles }
-                    |> withCmd Cmd.none
-
-            else
-                let
-                    numClicked =
-                        List.filter .selected model.tiles |> List.length
-                in
-                if numClicked >= 4 then
-                    model |> withCmd Cmd.none
-
-                else
+            case model.solveState of 
+            InProgress -> 
+                if clickedTile.selected then
                     let
                         newTiles =
                             List.map
@@ -155,6 +133,31 @@ update msg model =
                     in
                     { model | tiles = newTiles }
                         |> withCmd Cmd.none
+
+                else
+                    let
+                        numClicked =
+                            List.filter .selected model.tiles |> List.length
+                    in
+                    if numClicked >= 4 then
+                        model |> withCmd Cmd.none
+
+                    else
+                        let
+                            newTiles =
+                                List.map
+                                    (\t ->
+                                        if t == clickedTile then
+                                            { t | selected = not t.selected }
+
+                                        else
+                                            t
+                                    )
+                                    model.tiles
+                        in
+                        { model | tiles = newTiles }
+                            |> withCmd Cmd.none
+            _ -> (model, Cmd.none)
 
         ClickedSubmit ->
             let
@@ -218,15 +221,26 @@ update msg model =
                                 model.remainingTries - 1
 
                             newMessage =
-                                case model.message of
-                                    Just "Not quite!" ->
-                                        Just "Nope!"
+                                let
+                                    numEasy = List.filter ((==) GroupEasy) groupSelected |> List.length
+                                    numMed = List.filter ((==) GroupMedium) groupSelected |> List.length 
+                                    numHard = List.filter ((==) GroupHard) groupSelected  |> List.length
+                                    numChallenge = List.filter((==) GroupChallenge) groupSelected |> List.length
+                                    maxNum = List.maximum [numEasy, numMed, numHard, numChallenge] |> Maybe.withDefault 0
+                                in
+                                
+                                if maxNum == 3 then 
+                                    Just "Three out of four. So close..."
+                                else
+                                    case model.message of
+                                        Just "Not quite!" ->
+                                            Just "Nope!"
 
-                                    Just "Nope!" ->
-                                        Just "Not quite!"
+                                        Just "Nope!" ->
+                                            Just "Not quite!"
 
-                                    _ ->
-                                        Just "Not quite!"
+                                        _ ->
+                                            Just "Not quite!"
                         in
                         if remainingTries > 0 then
                             { model | tiles = unselectedTilesWithShaking, remainingTries = remainingTries, message = newMessage }

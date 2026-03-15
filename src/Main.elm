@@ -442,7 +442,7 @@ view model =
                 ]
             , div [class "subtitle-container"]
                 [ div [ class "subtitle" ] [ text <| "Make four groups of four!" ]
-                , div [class "author"] [text <| "Author: " ++ model.puzzle.author] ]
+                , div [class "author"] [text <| "Puzzle: " ++ model.puzzle.author] ]
             , div [ class "grid-container" ]
                 [ div [ class "grid" ]
                     (List.concat

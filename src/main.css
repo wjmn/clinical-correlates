@@ -219,10 +219,29 @@ button.disabled {
   align-items: center;
   width: 50%;
   cursor: pointer;
+  position: relative;
 }
 
 .other-puzzle-button:hover {
   background: oklch(92.2% 0.005 325.62);
+}
+
+.other-puzzle-button.is-solved {
+  background: oklch(98.2% 0.018 155.826);
+  color: oklch(62.7% 0.194 149.214);
+}
+
+.other-puzzle-button.is-solved:hover {
+  background:oklch(96.2% 0.044 156.743);
+}
+
+
+
+.other-puzzle-button.is-solved::before {
+  content: '✓';
+  position: absolute;
+  top: 0.5;
+  left: 5px;
 }
 
 /* GRID */

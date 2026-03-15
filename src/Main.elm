@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import Browser
 import Html exposing (..)
@@ -13,6 +13,8 @@ import Random.Extra
 import Random.List
 import Set
 import Task
+import Json.Decode 
+import Json.Encode as Encode
 
 
 
@@ -41,7 +43,14 @@ type alias Model =
     , solveState : SolveState
     , puzzle : Puzzle
     , message : Maybe String
+    , solvedSet : Set.Set String
     }
+
+encodeSolvedSet : Set.Set String -> Encode.Value 
+encodeSolvedSet solved = 
+    solved 
+    |> Set.toList 
+    |> Encode.list Encode.string
 
 
 toTilesWithGroup : TileGroup -> List Content -> List InterfaceTile
@@ -68,22 +77,30 @@ puzzleToInitialTiles puzzle =
     List.concat [ easyTiles, mediumTiles, hardTiles, challengeTiles ]
 
 
-initialiseModel : Puzzle -> Model
-initialiseModel puzzle =
+initialiseModel : Set.Set String -> Puzzle -> Model
+initialiseModel solvedSet puzzle =
     { tiles = puzzleToInitialTiles puzzle
     , remainingTries = 4
     , solvedRows = []
     , solveState = InProgress
     , puzzle = puzzle
     , message = Nothing
+    , solvedSet = solvedSet
     }
 
 
-init : ( Model, Cmd Msg )
-init =
+init : String -> ( Model, Cmd Msg )
+init flags =
     let
+        seenSet = 
+            flags 
+            |> Json.Decode.decodeString (Json.Decode.list Json.Decode.string)
+            |> Result.toMaybe 
+            |> Maybe.withDefault []
+            |> Set.fromList
+            
         initialModel =
-            initialiseModel (List.head allPuzzles |> Maybe.withDefault samplePuzzle)
+            initialiseModel seenSet (List.head allPuzzles |> Maybe.withDefault samplePuzzle)
     in
     ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
@@ -235,9 +252,11 @@ update msg model =
 
                                     else
                                         "Hm?"
+                                newSolvedSet = 
+                                    Set.insert model.puzzle.id model.solvedSet
                             in
-                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Just winMessage }
-                                |> withCmd Cmd.none
+                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Just winMessage, solvedSet = newSolvedSet }
+                                |> withCmd (cache (encodeSolvedSet newSolvedSet))
 
                     _ ->
                         let
@@ -320,14 +339,14 @@ update msg model =
         ClickedPuzzle puzzle ->
             let
                 initialModel =
-                    initialiseModel puzzle
+                    initialiseModel model.solvedSet puzzle
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
         ClickedRestart ->
             let
                 initialModel =
-                    initialiseModel model.puzzle
+                    initialiseModel model.solvedSet model.puzzle
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
@@ -411,7 +430,7 @@ view model =
                     False
 
         viewPuzzle puzzle =
-            div [ class "other-puzzle-button", onClick (ClickedPuzzle puzzle) ] [ text puzzle.id ]
+            div [ class "other-puzzle-button", onClick (ClickedPuzzle puzzle), classList [("is-solved", Set.member puzzle.id model.solvedSet)]] [ text puzzle.id ]
 
         ( submitText, submitAction ) =
             case model.solveState of
@@ -470,13 +489,15 @@ view model =
 
 
 ---- PROGRAM ----
+{-| A port which caches a session's authentication credentials into local storage.
+-}
+port cache : Encode.Value -> Cmd msg
 
-
-main : Program () Model Msg
+main : Program String Model Msg
 main =
     Browser.element
         { view = view
-        , init = \_ -> init
+        , init = init
         , update = update
         , subscriptions = always Sub.none
         }

@@ -4,7 +4,7 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/clinical-correlates/favicon.ico"
   },
   {
-    "revision": "3a47d1b8b0647207f3958f826b796d2e",
+    "revision": "a995b02c5dd8a24c208ee572f4302344",
     "url": "/clinical-correlates/index.html"
   },
   {
@@ -12,12 +12,12 @@ self.__precacheManifest = (self.__precacheManifest || []).concat([
     "url": "/clinical-correlates/manifest.json"
   },
   {
-    "revision": "0b18d5500025b0e42b2c",
+    "revision": "a19b9a589f7b10a6118d",
     "url": "/clinical-correlates/static/css/main.6395a180.chunk.css"
   },
   {
-    "revision": "0b18d5500025b0e42b2c",
-    "url": "/clinical-correlates/static/js/main.0b18d550.chunk.js"
+    "revision": "a19b9a589f7b10a6118d",
+    "url": "/clinical-correlates/static/js/main.a19b9a58.chunk.js"
   },
   {
     "revision": "fff3bea325361a1d9f0b",

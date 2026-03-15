@@ -103,6 +103,12 @@ button.disabled {
   border-radius: 8px;
   cursor: pointer;
   color: oklch(14.5% 0.008 326);
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Old versions of Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; 
 }
 
 .grid-tile:hover {
@@ -244,13 +250,20 @@ button.disabled {
 /* Messages */
 
 .message-row {
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: bold;
   color: oklch(36.4% 0.029 323.89);
   height: 2rem;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.message {
+  background: oklch(44.2% 0.017 285.786);
+  border-radius: 5px;
+  color: oklch(97% 0 0);
+  padding: 5px 10px;
 }
 
 /* FLASH */

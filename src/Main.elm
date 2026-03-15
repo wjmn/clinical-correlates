@@ -204,7 +204,22 @@ update msg model =
                                 |> withCmd (Task.perform (\_ -> JumpTilesThenNewModel newModel) <| Process.sleep 500)
 
                         else
-                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Nothing }
+                            let
+                                winMessage = 
+                                    if model.remainingTries == 4 then 
+                                        "Wizard of the wards!"
+                                    else if model.remainingTries == 3 then 
+                                        "Model clinician!"
+                                    else if model.remainingTries == 2 then 
+                                        "Not bad eh!"
+                                    else if model.remainingTries == 1 then 
+                                        "P's get degrees, amirite?"
+                                    else 
+                                        "Hm?"
+
+                            in
+                            
+                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Just winMessage}
                                 |> withCmd Cmd.none
 
                     _ ->
@@ -247,7 +262,7 @@ update msg model =
                                     |> withCmd (Task.perform (\_ -> UnshakeAllTiles) <|  (Process.sleep 300) )
 
                         else
-                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "You lost :( No answers for you!" }
+                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "Better luck next time..." }
                                 |> withCmd Cmd.none
 
             else

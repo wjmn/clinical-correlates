@@ -151,6 +151,12 @@ button.disabled {
   100% { transform: translateY(0px) }
 }
 
+@keyframes grow {
+  0% { transform: scale(1) }
+  50% { transform: scale(1.05)}
+  100% { transform: scale(1)}
+}
+
 /* Button Row */
 
 .button-row {
@@ -220,9 +226,10 @@ button.disabled {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  transition: all 0.3s;
   border-radius: 5px;
   color: oklch(14.5% 0.008 326);
+  animation: grow 0.4s;
+  animation-timing-function: ease-in-out;
 }
 
 .solved-row.group-easy {

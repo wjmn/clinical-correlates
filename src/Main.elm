@@ -10,35 +10,13 @@ import Random
 import Random.Extra
 import Random.List
 import Set
+import Puzzles exposing (..)
 
 
 
 ---- MODEL ----
 
 
-type alias Content =
-    String
-
-
-type TileGroup
-    = GroupEasy
-    | GroupMedium
-    | GroupHard
-    | GroupChallenge
-
-
-type alias PuzzleGroup =
-    { groupDescriptor : String
-    , tiles : List Content
-    }
-
-
-type alias Puzzle =
-    { groupEasy : PuzzleGroup
-    , groupMedium : PuzzleGroup
-    , groupHard : PuzzleGroup
-    , groupChallenge : PuzzleGroup
-    }
 
 
 type alias InterfaceTile =
@@ -61,15 +39,6 @@ type alias Model =
     , solveState : SolveState
     , puzzle : Puzzle
     , message : Maybe String
-    }
-
-
-samplePuzzle : Puzzle
-samplePuzzle =
-    { groupEasy = { groupDescriptor = "Starts with A", tiles = [ "apple", "ant", "animal", "artwork" ] }
-    , groupMedium = { groupDescriptor = "Starts with B", tiles = [ "banana", "bat", "brilliant", "banal" ] }
-    , groupHard = { groupDescriptor = "Starts with C", tiles = [ "cinnamon", "cut", "cow", "cat" ] }
-    , groupChallenge = { groupDescriptor = "Starts with D", tiles = [ "deer", "delta", "dodge", "dark" ] }
     }
 
 
@@ -112,7 +81,7 @@ init : ( Model, Cmd Msg )
 init =
     let
         initialModel =
-            initialiseModel samplePuzzle
+            initialiseModel (List.Extra.last allPuzzles |> Maybe.withDefault samplePuzzle)
     in
     ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
@@ -127,6 +96,7 @@ type Msg
     | ClickedTile InterfaceTile
     | ClickedSubmit
     | ClickedShuffle
+    | ClickedPuzzle Puzzle
 
 
 withCmd cmd model =
@@ -231,13 +201,19 @@ update msg model =
 
                             remainingTries =
                                 model.remainingTries - 1
+
+                            newMessage = 
+                                case model.message of 
+                                    Just "Not quite!" -> Just "Nope!"
+                                    Just "Nope!" -> Just "Not quite!"
+                                    _ -> Just "Not quite!"
                         in
                         if remainingTries > 0 then
-                            { model | tiles = unselectedTiles, remainingTries = remainingTries, message = Just "Not quite!" }
+                            { model | tiles = unselectedTiles, remainingTries = remainingTries, message = newMessage }
                                 |> withCmd Cmd.none
 
                         else
-                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Nothing }
+                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "You lost :( No answers for you!"}
                                 |> withCmd Cmd.none
 
             else
@@ -246,6 +222,13 @@ update msg model =
         ClickedShuffle ->
             model
                 |> withCmd (Random.generate ShuffledTiles (Random.List.shuffle model.tiles))
+        
+        ClickedPuzzle puzzle -> 
+            let
+                initialModel =
+                    initialiseModel puzzle 
+            in
+            ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
         NoOp ->
             ( model, Cmd.none )
@@ -312,6 +295,9 @@ view model =
 
             else
                 False
+
+        viewPuzzle puzzle = 
+            div [class "other-puzzle-button", onClick (ClickedPuzzle puzzle)] [text puzzle.id]
     in
     div [ class "outer-container" ]
         [ div [ id "game-status", class statusClass ]
@@ -329,7 +315,8 @@ view model =
             ]
         , div [ class "inner-container" ]
             [ div [ class "header" ] [ text "Clinical Correlates" ]
-            , div [ class "subtitle" ] [ text "Make four groups of four!" ]
+            , div [class "puzzle-id" ][ text <| model.puzzle.id ]
+            , div [ class "subtitle"] [ text <| "Make four groups of four!"]
             , div [ class "grid-container" ]
                 [ div [ class "grid" ]
                     (List.concat
@@ -338,6 +325,8 @@ view model =
                         ]
                     )
                 ]
+            , div [class "num-remaining"]
+                (List.repeat model.remainingTries (div  [class "remaining-try"] []))
             , div [ class "button-row" ]
                 [ button [ class "submit-button", onClick ClickedSubmit, disabled submitButtonDisabled, classList [ ( "disabled", submitButtonDisabled ) ] ]
                     [ text "Submit" ]
@@ -345,6 +334,9 @@ view model =
                 ]
             , div [ class "message-row" ]
                 [ messageDiv ]
+            , div [class "other-puzzles"]
+                [div [class "other-puzzles-header"] [text "All dates:"]
+                , div [class "other-puzzles-container"] (List.map viewPuzzle allPuzzles)]
             ]
         ]
 

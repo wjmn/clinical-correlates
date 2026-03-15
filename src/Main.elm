@@ -6,13 +6,13 @@ import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import List.Extra
 import Maybe.Extra
+import Process
 import Puzzles exposing (..)
 import Random
 import Random.Extra
 import Random.List
 import Set
 import Task
-import Process
 
 
 
@@ -47,7 +47,7 @@ type alias Model =
 toTilesWithGroup : TileGroup -> List Content -> List InterfaceTile
 toTilesWithGroup group tiles =
     tiles
-        |> List.map (\c -> { content = c, group = group, selected = False, shaking = False, jumping = False})
+        |> List.map (\c -> { content = c, group = group, selected = False, shaking = False, jumping = False })
 
 
 puzzleToInitialTiles : Puzzle -> List InterfaceTile
@@ -116,33 +116,9 @@ update msg model =
                 |> withCmd Cmd.none
 
         ClickedTile clickedTile ->
-            case model.solveState of 
-            InProgress -> 
-                if clickedTile.selected then
-                    let
-                        newTiles =
-                            List.map
-                                (\t ->
-                                    if t == clickedTile then
-                                        { t | selected = not t.selected }
-
-                                    else
-                                        t
-                                )
-                                model.tiles
-                    in
-                    { model | tiles = newTiles }
-                        |> withCmd Cmd.none
-
-                else
-                    let
-                        numClicked =
-                            List.filter .selected model.tiles |> List.length
-                    in
-                    if numClicked >= 4 then
-                        model |> withCmd Cmd.none
-
-                    else
+            case model.solveState of
+                InProgress ->
+                    if clickedTile.selected then
                         let
                             newTiles =
                                 List.map
@@ -157,7 +133,33 @@ update msg model =
                         in
                         { model | tiles = newTiles }
                             |> withCmd Cmd.none
-            _ -> (model, Cmd.none)
+
+                    else
+                        let
+                            numClicked =
+                                List.filter .selected model.tiles |> List.length
+                        in
+                        if numClicked >= 4 then
+                            model |> withCmd Cmd.none
+
+                        else
+                            let
+                                newTiles =
+                                    List.map
+                                        (\t ->
+                                            if t == clickedTile then
+                                                { t | selected = not t.selected }
+
+                                            else
+                                                t
+                                        )
+                                        model.tiles
+                            in
+                            { model | tiles = newTiles }
+                                |> withCmd Cmd.none
+
+                _ ->
+                    ( model, Cmd.none )
 
         ClickedSubmit ->
             let
@@ -196,56 +198,87 @@ update msg model =
                         in
                         if List.length updatedTiles > 0 then
                             let
-                                newModel = { model | tiles = updatedTiles, solvedRows = solvedRows, message = Just "Nice one!" }
-                                modelWithJumping = 
-                                    { model | tiles = List.map (\x -> if x.selected then { x | jumping = True} else x) model.tiles }
+                                newModel =
+                                    { model | tiles = updatedTiles, solvedRows = solvedRows, message = Just "Nice one!" }
+
+                                modelWithJumping =
+                                    { model
+                                        | tiles =
+                                            List.map
+                                                (\x ->
+                                                    if x.selected then
+                                                        { x | jumping = True }
+
+                                                    else
+                                                        x
+                                                )
+                                                model.tiles
+                                    }
                             in
-                                modelWithJumping
+                            modelWithJumping
                                 |> withCmd (Task.perform (\_ -> JumpTilesThenNewModel newModel) <| Process.sleep 500)
 
                         else
                             let
-                                winMessage = 
-                                    if model.remainingTries == 4 then 
+                                winMessage =
+                                    if model.remainingTries == 4 then
                                         "Wizard of the wards!"
-                                    else if model.remainingTries == 3 then 
-                                        "Model clinician!"
-                                    else if model.remainingTries == 2 then 
-                                        "Not bad eh!"
-                                    else if model.remainingTries == 1 then 
-                                        "P's get degrees, amirite?"
-                                    else 
-                                        "Hm?"
 
+                                    else if model.remainingTries == 3 then
+                                        "Model clinician!"
+
+                                    else if model.remainingTries == 2 then
+                                        "Not bad eh!"
+
+                                    else if model.remainingTries == 1 then
+                                        "P's get degrees, amirite?"
+
+                                    else
+                                        "Hm?"
                             in
-                            
-                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Just winMessage}
+                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Just winMessage }
                                 |> withCmd Cmd.none
 
                     _ ->
                         let
-
                             unselectedTilesWithShaking =
                                 model.tiles
-                                |> List.map (\t -> if t.selected then { t | selected = False, shaking=True } else t)
+                                    |> List.map
+                                        (\t ->
+                                            if t.selected then
+                                                { t | selected = False, shaking = True }
+
+                                            else
+                                                t
+                                        )
+
                             unselectedTiles =
                                 model.tiles
-                                |> List.map (\t -> { t | selected = False })
+                                    |> List.map (\t -> { t | selected = False })
 
                             remainingTries =
                                 model.remainingTries - 1
 
                             newMessage =
                                 let
-                                    numEasy = List.filter ((==) GroupEasy) groupSelected |> List.length
-                                    numMed = List.filter ((==) GroupMedium) groupSelected |> List.length 
-                                    numHard = List.filter ((==) GroupHard) groupSelected  |> List.length
-                                    numChallenge = List.filter((==) GroupChallenge) groupSelected |> List.length
-                                    maxNum = List.maximum [numEasy, numMed, numHard, numChallenge] |> Maybe.withDefault 0
+                                    numEasy =
+                                        List.filter ((==) GroupEasy) groupSelected |> List.length
+
+                                    numMed =
+                                        List.filter ((==) GroupMedium) groupSelected |> List.length
+
+                                    numHard =
+                                        List.filter ((==) GroupHard) groupSelected |> List.length
+
+                                    numChallenge =
+                                        List.filter ((==) GroupChallenge) groupSelected |> List.length
+
+                                    maxNum =
+                                        List.maximum [ numEasy, numMed, numHard, numChallenge ] |> Maybe.withDefault 0
                                 in
-                                
-                                if maxNum == 3 then 
+                                if maxNum == 3 then
                                     Just "Three out of four. So close..."
+
                                 else
                                     case model.message of
                                         Just "Not quite!" ->
@@ -259,7 +292,7 @@ update msg model =
                         in
                         if remainingTries > 0 then
                             { model | tiles = unselectedTilesWithShaking, remainingTries = remainingTries, message = newMessage }
-                                    |> withCmd (Task.perform (\_ -> UnshakeAllTiles) <|  (Process.sleep 300) )
+                                |> withCmd (Task.perform (\_ -> UnshakeAllTiles) <| Process.sleep 300)
 
                         else
                             { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "Better luck next time..." }
@@ -272,17 +305,17 @@ update msg model =
             model
                 |> withCmd (Random.generate ShuffledTiles (Random.List.shuffle model.tiles))
 
-        UnshakeAllTiles -> 
+        UnshakeAllTiles ->
             let
-                updatedTiles = List.map (\t -> { t | shaking = False}) model.tiles
+                updatedTiles =
+                    List.map (\t -> { t | shaking = False }) model.tiles
             in
-            { model | tiles = updatedTiles}
-            |> withCmd Cmd.none
+            { model | tiles = updatedTiles }
+                |> withCmd Cmd.none
 
-        JumpTilesThenNewModel newModel -> 
-            newModel 
-            |> withCmd Cmd.none
-            
+        JumpTilesThenNewModel newModel ->
+            newModel
+                |> withCmd Cmd.none
 
         ClickedPuzzle puzzle ->
             let
@@ -291,14 +324,12 @@ update msg model =
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
-        ClickedRestart -> 
+        ClickedRestart ->
             let
                 initialModel =
                     initialiseModel model.puzzle
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
-
-
 
         NoOp ->
             ( model, Cmd.none )
@@ -338,7 +369,7 @@ view model =
                 , classList
                     [ ( "is-selected", tile.selected )
                     , ( "is-shaking", tile.shaking )
-                    , ( "is-jumping", tile.jumping)
+                    , ( "is-jumping", tile.jumping )
                     ]
                 , onClick (ClickedTile tile)
                 ]
@@ -368,23 +399,27 @@ view model =
                 |> List.length
 
         submitButtonDisabled =
-            case model.solveState of 
-                InProgress -> 
+            case model.solveState of
+                InProgress ->
                     if numSelected < 4 then
                         True
 
                     else
                         False
-                _ -> False
+
+                _ ->
+                    False
 
         viewPuzzle puzzle =
             div [ class "other-puzzle-button", onClick (ClickedPuzzle puzzle) ] [ text puzzle.id ]
 
-        (submitText, submitAction) = 
-            case model.solveState of 
-                InProgress -> ("Submit", ClickedSubmit)
-                _ -> ("Restart", ClickedRestart)
+        ( submitText, submitAction ) =
+            case model.solveState of
+                InProgress ->
+                    ( "Submit", ClickedSubmit )
 
+                _ ->
+                    ( "Restart", ClickedRestart )
     in
     div [ class "outer-container" ]
         [ div [ id "game-status", class statusClass ]
@@ -401,9 +436,13 @@ view model =
                 []
             ]
         , div [ class "inner-container" ]
-            [ div [ class "header" ] [ text "Clinical Correlates" ]
-            , div [ class "puzzle-id" ] [ text <| model.puzzle.id ]
-            , div [ class "subtitle" ] [ text <| "Make four groups of four!" ]
+            [ div [ class "header-container" ]
+                [ div [ class "header" ] [ text "Clinical Correlates" ]
+                , div [ class "puzzle-id" ] [ text <| model.puzzle.id ]
+                ]
+            , div [class "subtitle-container"]
+                [ div [ class "subtitle" ] [ text <| "Make four groups of four!" ]
+                , div [class "author"] [text <| "Author: " ++ model.puzzle.author] ]
             , div [ class "grid-container" ]
                 [ div [ class "grid" ]
                     (List.concat

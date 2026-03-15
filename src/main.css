@@ -77,19 +77,31 @@ button.disabled {
   padding: 0.25rem;
 }
 
+.header-container, .subtitle-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: end;
+  align-content: center;
+  padding: 0 0.5rem;
+}
+
+.subtitle-container {
+  margin-bottom: 1rem;
+}
+
 .header {
   font-size: 1.5rem;
   font-weight: bold;
+  font-family: Georgia, Cochin, Times, 'Times New Roman', serif;
 }
 
 .puzzle-id {
-  margin-bottom: 0.5rem;
   color: grey;
 }
 
-.subtitle {
-  margin-bottom: 1rem;
+.subtitle, .author {
   color: grey;
+  text-align: left;
 }
 
 .grid-tile {

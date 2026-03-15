@@ -26,19 +26,21 @@ img {
 }
 
 button {
-  background: oklch(87.2% 0.01 258.338);
+
+  background: oklch(92.2% 0.005 325.62);
   font-family: inherit;
   font-size: 1.2rem;
   padding: 0.5rem;
   border-radius: 5px;
   border: none;
-  border-bottom: 2px solid oklch(70.7% 0.022 261.325);
+  border-bottom: 2px solid oklch(86.5% 0.012 325.68);
   margin-top: 2px;
   cursor: pointer;
+  color: oklch(26.3% 0.024 320.12);
 }
 
 button:hover {
-  border-bottom: 4px solid oklch(70.7% 0.022 261.325);
+  border-bottom: 4px solid oklch(86.5% 0.012 325.68);
   margin-top: 0px;
 }
 
@@ -122,7 +124,7 @@ button.disabled {
 }
 
 .grid-tile.is-shaking {
-  animation: shake 0.5s;
+  animation: shake 0.4s;
   animation-iteration-count: infinite;
 }
 
@@ -162,11 +164,15 @@ button.disabled {
 .button-row {
   display: flex;
   justify-content: center;
-  margin-bottom: 1.5rem;
+  margin: 1rem;
 }
 
 .submit-button {
   margin-right: 0.5rem;
+  background: oklch(92.2% 0.005 325.62);
+}
+
+.shuffle-button {
 }
 
 /* Remaining tries */

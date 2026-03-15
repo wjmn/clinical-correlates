@@ -414,13 +414,13 @@ view model =
                 ]
             , div [ class "num-remaining" ]
                 (List.repeat model.remainingTries (div [ class "remaining-try" ] []))
+            , div [ class "message-row" ]
+                [ messageDiv ]
             , div [ class "button-row" ]
                 [ button [ class "submit-button", onClick submitAction, disabled submitButtonDisabled, classList [ ( "disabled", submitButtonDisabled ) ] ]
                     [ text submitText ]
                 , button [ class "shuffle-button", onClick ClickedShuffle ] [ text "Shuffle" ]
                 ]
-            , div [ class "message-row" ]
-                [ messageDiv ]
             , div [ class "other-puzzles" ]
                 [ div [ class "other-puzzles-header" ] [ text "All dates:" ]
                 , div [ class "other-puzzles-container" ] (List.map viewPuzzle allPuzzles)

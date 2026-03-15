@@ -1,7 +1,7 @@
 {
-  "main.css": "/clinical-correlates/static/css/main.6395a180.chunk.css",
-  "main.js": "/clinical-correlates/static/js/main.a19b9a58.chunk.js",
-  "main.js.map": "/clinical-correlates/static/js/main.a19b9a58.chunk.js.map",
+  "main.css": "/clinical-correlates/static/css/main.af070336.chunk.css",
+  "main.js": "/clinical-correlates/static/js/main.f4745a2b.chunk.js",
+  "main.js.map": "/clinical-correlates/static/js/main.f4745a2b.chunk.js.map",
   "runtime~main.js": "/clinical-correlates/static/js/runtime~main.fff3bea3.js",
   "runtime~main.js.map": "/clinical-correlates/static/js/runtime~main.fff3bea3.js.map",
   "vendors~main.js": "/clinical-correlates/static/js/vendors~main.ded87515.chunk.js",
@@ -10,5 +10,5 @@
   "favicon.ico": "/clinical-correlates/favicon.ico",
   "index.html": "/clinical-correlates/index.html",
   "manifest.json": "/clinical-correlates/manifest.json",
-  "precache-manifest.f61ed838d79ba242ca84247659e3a8c4.js": "/clinical-correlates/precache-manifest.f61ed838d79ba242ca84247659e3a8c4.js"
+  "precache-manifest.ec68c96a02d8e0f12be44e83523cc9cb.js": "/clinical-correlates/precache-manifest.ec68c96a02d8e0f12be44e83523cc9cb.js"
 }

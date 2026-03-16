@@ -39,6 +39,7 @@ samplePuzzle =
 
 template = 
     { id = ""
+    , author = ""
     , groupEasy = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
     , groupMedium = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
     , groupHard = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
@@ -80,7 +81,50 @@ allPuzzles =
         , groupChallenge = { groupDescriptor = "Ending in synonyms for unwell", tiles = [ "krill", "fossick", "flailing", "doff" ] }
         }
 
+    , 
+        { id = "2026-03-16"
+        , author = "JW"
+        , groupEasy = { groupDescriptor = "Medication frequencies", tiles = [ "MANE", "NOCTE", "MIDI", "STAT" ] }
+        , groupMedium = { groupDescriptor = "___hyoid muscle", tiles = [ "OMO", "STYLO", "GENIO", "MYLO" ] }
+        , groupHard = { groupDescriptor = "Bones minus \"us\"", tiles = [ "INC", "RADI", "MALLE", "TAL" ] }
+        , groupChallenge = { groupDescriptor = "Ophthal lingo", tiles = [ "BRAO", "IOL", "RAPD", "OD" ] }
+        }
+
+    , 
+        { id = "2026-03-17"
+        , author = "JW"
+        , groupEasy = { groupDescriptor = "Eponymous thyroid diseases", tiles = [ "graves", "riedel", "hashimoto", "de quervain" ] }
+        , groupMedium = { groupDescriptor = "Eponymous aneuploidies", tiles = [ "turner", "down", "edwards", "patau" ] }
+        , groupHard = { groupDescriptor = "Eponymous neurodegenerative disorders", tiles = [ "parkinson", "huntington", "alzheimer", "pick" ] }
+        , groupChallenge = { groupDescriptor = "Eponymous tumours", tiles = [ "wilms", "ewing", "burkitt", "kaposi" ] }
+        }
+
+    , 
+        { id = "2026-03-18"
+        , author = "JW"
+        , groupEasy = { groupDescriptor = "Antifungals", tiles = [ "nystatin", "terbinafine", "fluconazole", "amphotericin" ] }
+        , groupMedium = { groupDescriptor = "Tuberculosis treatment", tiles = [ "rifampicin", "isoniazid", "pyrazinamide", "ethambutol" ] }
+        , groupHard = { groupDescriptor = "First-line H. pylori drugs", tiles = [ "amoxicillin", "clarithromycin", "esomeprazole", "metronidazole" ] }
+        , groupChallenge = { groupDescriptor = "Common UTI therapeutics", tiles = [ "nitrofurantoin", "trimethoprim", "cephalexin", "fosfomycin" ] }
+        }
+    , 
+        { id = "2026-03-19"
+        , author = ""
+        , groupEasy = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        , groupMedium = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        , groupHard = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        , groupChallenge = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        }
+    , 
+        { id = "2026-03-20"
+        , author = ""
+        , groupEasy = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        , groupMedium = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        , groupHard = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        , groupChallenge = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        }
 
 
     ]
+    |> List.sortBy .id 
     |> List.reverse

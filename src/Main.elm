@@ -44,6 +44,7 @@ type alias Model =
     , puzzle : Puzzle
     , message : Maybe String
     , solvedSet : Set.Set String
+    , allAvailablePuzzles : List Puzzle
     }
 
 encodeSolvedSet : Set.Set String -> Encode.Value 
@@ -77,8 +78,8 @@ puzzleToInitialTiles puzzle =
     List.concat [ easyTiles, mediumTiles, hardTiles, challengeTiles ]
 
 
-initialiseModel : Set.Set String -> Puzzle -> Model
-initialiseModel solvedSet puzzle =
+initialiseModel : Set.Set String -> List Puzzle -> Puzzle -> Model
+initialiseModel solvedSet allAvailablePuzzles puzzle =
     { tiles = puzzleToInitialTiles puzzle
     , remainingTries = 4
     , solvedRows = []
@@ -86,21 +87,33 @@ initialiseModel solvedSet puzzle =
     , puzzle = puzzle
     , message = Nothing
     , solvedSet = solvedSet
+    , allAvailablePuzzles = allAvailablePuzzles
     }
 
+decoderFlags : Json.Decode.Decoder (String, List String)
+decoderFlags = 
+    Json.Decode.map2 Tuple.pair 
+        (Json.Decode.field "date" Json.Decode.string)
+        (Json.Decode.field "solved" (Json.Decode.list Json.Decode.string))
 
-init : String -> ( Model, Cmd Msg )
+
+init : Encode.Value -> ( Model, Cmd Msg )
 init flags =
     let
-        seenSet = 
+        (dateString, seenList) = 
             flags 
-            |> Json.Decode.decodeString (Json.Decode.list Json.Decode.string)
+            |> Json.Decode.decodeValue decoderFlags
             |> Result.toMaybe 
-            |> Maybe.withDefault []
-            |> Set.fromList
-            
+            |> Maybe.withDefault ("9999-99-99Z", [])
+
+        seenSet = seenList |> Set.fromList
+
+        allAvailablePuzzles  = 
+            allPuzzles 
+            |> List.filter (\p -> p.id < dateString)
+
         initialModel =
-            initialiseModel seenSet (List.head allPuzzles |> Maybe.withDefault samplePuzzle)
+            initialiseModel seenSet allAvailablePuzzles (List.head allAvailablePuzzles |> Maybe.withDefault samplePuzzle)
     in
     ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
@@ -339,14 +352,14 @@ update msg model =
         ClickedPuzzle puzzle ->
             let
                 initialModel =
-                    initialiseModel model.solvedSet puzzle
+                    initialiseModel model.solvedSet model.allAvailablePuzzles puzzle 
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
         ClickedRestart ->
             let
                 initialModel =
-                    initialiseModel model.solvedSet model.puzzle
+                    initialiseModel model.solvedSet model.allAvailablePuzzles model.puzzle
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
 
@@ -481,7 +494,7 @@ view model =
                 ]
             , div [ class "other-puzzles" ]
                 [ div [ class "other-puzzles-header" ] [ text "All dates:" ]
-                , div [ class "other-puzzles-container" ] (List.map viewPuzzle allPuzzles)
+                , div [ class "other-puzzles-container" ] (List.map viewPuzzle model.allAvailablePuzzles)
                 ]
             ]
         ]
@@ -493,7 +506,7 @@ view model =
 -}
 port cache : Encode.Value -> Cmd msg
 
-main : Program String Model Msg
+main : Program Encode.Value Model Msg
 main =
     Browser.element
         { view = view

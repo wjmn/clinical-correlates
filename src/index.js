@@ -11,12 +11,18 @@ let app = Elm.Main.init({
 });
 
 function safeGet(jsonString) {
+
+  // Add date string 
+  const currentDate = new Date();
+  const dateString = currentDate.toISOString().slice(0,10) + "Z";
+
   var jsonObject = JSON.parse(jsonString); 
 
   if (jsonObject == null) {
-    return "[]";
+    return {"date": dateString, "solved": []};
   }
-  return jsonString;
+  return {"date": dateString, "solved": jsonObject};
+
 }
 
 // when the cache msg is sent, store the session data into local storage

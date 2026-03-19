@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/4.3.1/workbox-sw.js");
 
 importScripts(
-  "/clinical-correlates/precache-manifest.9d7b248566b6a7d303de31498cd95781.js"
+  "/clinical-correlates/precache-manifest.ce2c1120c2e6eb6c88bff469740ca248.js"
 );
 
 workbox.core.skipWaiting();

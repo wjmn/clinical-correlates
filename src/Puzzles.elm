@@ -101,6 +101,14 @@ allPuzzles =
 
     , 
         { id = "2026-03-18"
+        , author = "DN"
+        , groupEasy = { groupDescriptor = "Hyper___ and hypo___", tiles = [ "TENSION", "THYROID", "KALAEMIA", "PIGMENTATION" ] }
+        , groupMedium = { groupDescriptor = "___ cells in the immune system", tiles = [ "B", "T", "DENDRITIC", "PLASMA" ] }
+        , groupHard = { groupDescriptor = "___plasia", tiles = [ "META", "HYPER", "A", "NEO" ] }
+        , groupChallenge = { groupDescriptor = "Vascular access lines", tiles = [ "MID", "CENTRAL", "ART", "LONG" ] }
+        }
+    , 
+        { id = "2026-03-19"
         , author = "JW"
         , groupEasy = { groupDescriptor = "Antifungals", tiles = [ "nystatin", "terbinafine", "fluconazole", "amphotericin" ] }
         , groupMedium = { groupDescriptor = "Tuberculosis treatment", tiles = [ "rifampicin", "isoniazid", "pyrazinamide", "ethambutol" ] }
@@ -108,20 +116,12 @@ allPuzzles =
         , groupChallenge = { groupDescriptor = "Common UTI therapeutics", tiles = [ "nitrofurantoin", "trimethoprim", "cephalexin", "fosfomycin" ] }
         }
     , 
-        { id = "2026-03-19"
-        , author = ""
-        , groupEasy = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
-        , groupMedium = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
-        , groupHard = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
-        , groupChallenge = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
-        }
-    , 
         { id = "2026-03-20"
-        , author = ""
-        , groupEasy = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
-        , groupMedium = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
-        , groupHard = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
-        , groupChallenge = { groupDescriptor = "", tiles = [ "", "", "", "" ] }
+        , author = "JW"
+        , groupEasy = { groupDescriptor = "Liver function tests", tiles = [ "AST", "ALT", "GGT", "ALP" ] }
+        , groupMedium = { groupDescriptor = "Anti-hypertensives", tiles = [ "GTN", "ARB", "CCB", "HCT" ] }
+        , groupHard = { groupDescriptor = "Cardiovascular co-morbidities", tiles = [ "HTN", "HLD", "CCF", "CAD" ] }
+        , groupChallenge = { groupDescriptor = "3-letter amino acid codes", tiles = [ "ASP", "ASN", "ALA", "GLN" ] }
         }
 
 

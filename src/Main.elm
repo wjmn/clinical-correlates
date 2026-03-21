@@ -43,6 +43,8 @@ type alias Model =
     , solveState : SolveState
     , puzzle : Puzzle
     , message : Maybe String
+    , attempts : List String
+    , clickedCopy : Bool
     , solvedSet : Set.Set String
     , allAvailablePuzzles : List Puzzle
     }
@@ -86,6 +88,8 @@ initialiseModel solvedSet allAvailablePuzzles puzzle =
     , solveState = InProgress
     , puzzle = puzzle
     , message = Nothing
+    , attempts = []
+    , clickedCopy = False
     , solvedSet = solvedSet
     , allAvailablePuzzles = allAvailablePuzzles
     }
@@ -132,11 +136,30 @@ type Msg
     | ClickedShuffle
     | ClickedPuzzle Puzzle
     | ClickedRestart
+    | ClickedCopyAttempts
 
 
 withCmd cmd model =
     ( model, cmd )
 
+groupToEmoji : TileGroup -> String 
+groupToEmoji group = 
+    case group of 
+        GroupEasy -> "🟨"
+        GroupMedium -> "🟩"
+        GroupHard -> "🟪"
+        GroupChallenge -> "🟥"
+
+makeEmojisFromTiles : List InterfaceTile -> String
+makeEmojisFromTiles tiles = 
+    tiles 
+    |> List.map .group 
+    |> List.map groupToEmoji
+    |> String.join ""
+
+withNewAttempt : List String -> List InterfaceTile -> List String 
+withNewAttempt attempts tiles = 
+    attempts ++ [ makeEmojisFromTiles tiles]
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
@@ -204,6 +227,7 @@ update msg model =
             in
             if List.length selected == 4 then
                 case uniqueGroups of
+                    -- correct answer
                     [ onlyGroup ] ->
                         let
                             updatedTiles =
@@ -226,10 +250,11 @@ update msg model =
                             solvedRows =
                                 model.solvedRows ++ [ ( onlyGroup, solvedRow ) ]
                         in
+                        -- still remaining ungrouped tiles - game continues
                         if List.length updatedTiles > 0 then
                             let
                                 newModel =
-                                    { model | tiles = updatedTiles, solvedRows = solvedRows, message = Just "Nice one!" }
+                                    { model | tiles = updatedTiles, solvedRows = solvedRows, message = Just "Nice one!", attempts = withNewAttempt model.attempts selected }
 
                                 modelWithJumping =
                                     { model
@@ -248,6 +273,7 @@ update msg model =
                             modelWithJumping
                                 |> withCmd (Task.perform (\_ -> JumpTilesThenNewModel newModel) <| Process.sleep 500)
 
+                        -- no more ungrouped tiles left - the player has won
                         else
                             let
                                 winMessage =
@@ -268,9 +294,10 @@ update msg model =
                                 newSolvedSet = 
                                     Set.insert model.puzzle.id model.solvedSet
                             in
-                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Just winMessage, solvedSet = newSolvedSet }
+                            { model | tiles = updatedTiles, solvedRows = solvedRows, solveState = Won, message = Just winMessage, solvedSet = newSolvedSet, attempts = withNewAttempt model.attempts selected}
                                 |> withCmd (cache (encodeSolvedSet newSolvedSet))
 
+                    -- incorrect answer
                     _ ->
                         let
                             unselectedTilesWithShaking =
@@ -323,11 +350,11 @@ update msg model =
                                             Just "Not quite!"
                         in
                         if remainingTries > 0 then
-                            { model | tiles = unselectedTilesWithShaking, remainingTries = remainingTries, message = newMessage }
+                            { model | tiles = unselectedTilesWithShaking, remainingTries = remainingTries, message = newMessage, attempts = withNewAttempt model.attempts selected }
                                 |> withCmd (Task.perform (\_ -> UnshakeAllTiles) <| Process.sleep 300)
 
                         else
-                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "Better luck next time..." }
+                            { model | tiles = unselectedTiles, solveState = Lost, remainingTries = remainingTries, message = Just "Better luck next time...", attempts = withNewAttempt model.attempts selected }
                                 |> withCmd Cmd.none
 
             else
@@ -362,6 +389,13 @@ update msg model =
                     initialiseModel model.solvedSet model.allAvailablePuzzles model.puzzle
             in
             ( initialModel, Random.generate ShuffledTiles (Random.List.shuffle initialModel.tiles) )
+
+        ClickedCopyAttempts -> 
+            case model.solveState of 
+                Won -> 
+                    ({ model | clickedCopy = True}, copyToClipboard (String.join "\n" model.attempts))
+                _ -> 
+                    (model, Cmd.none)
 
         NoOp ->
             ( model, Cmd.none )
@@ -452,6 +486,22 @@ view model =
 
                 _ ->
                     ( "Restart", ClickedRestart )
+
+        copyMessage = 
+            if model.clickedCopy then 
+                "(copied)"
+            else 
+                "(click to copy)"
+
+        attemptsDiv = 
+            case model.solveState of 
+                Won -> 
+                    div [class "attempts-container", onClick ClickedCopyAttempts]
+                        [ div [ class "attempts-string"] [text <| String.join "\n" model.attempts]
+                        , div [ class "attempts-descriptor"] [text copyMessage]
+                        ]
+                _ -> 
+                    div [] []
     in
     div [ class "outer-container" ]
         [ div [ id "game-status", class statusClass ]
@@ -487,6 +537,8 @@ view model =
                 (List.repeat model.remainingTries (div [ class "remaining-try" ] []))
             , div [ class "message-row" ]
                 [ messageDiv ]
+            , div [class "attempts-row"]
+                [ attemptsDiv]
             , div [ class "button-row" ]
                 [ button [ class "submit-button", onClick submitAction, disabled submitButtonDisabled, classList [ ( "disabled", submitButtonDisabled ) ] ]
                     [ text submitText ]
@@ -505,6 +557,8 @@ view model =
 {-| A port which caches a session's authentication credentials into local storage.
 -}
 port cache : Encode.Value -> Cmd msg
+
+port copyToClipboard : String -> Cmd msg
 
 main : Program Encode.Value Model Msg
 main =
